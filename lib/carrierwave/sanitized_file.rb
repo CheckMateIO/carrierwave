@@ -258,6 +258,12 @@ module CarrierWave
         @content_type = @file.content_type.to_s.chomp
       elsif path
         @content_type = ::MIME::Types.type_for(path).first.to_s
+        if @content_type.blank?
+          File.open(path) do |fd|
+            data = fd.read(1024) || ""
+            @content_type = filemagic.buffer(data)
+          end
+        end
       end
     end
 
@@ -331,6 +337,14 @@ module CarrierWave
         end
       end
       return filename, "" # In case we weren't able to split the extension
+    end
+
+    ##
+    # FileMagic object with the MAGIC_MIME_TYPE flag set
+    #
+    # @return [FileMagic] a filemagic object
+    def filemagic
+      @filemagic ||= FileMagic.new(FileMagic::MAGIC_MIME_TYPE)
     end
 
   end # SanitizedFile
