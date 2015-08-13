@@ -264,6 +264,7 @@ module CarrierWave
             @content_type = filemagic.buffer(data)
           end
         end
+        @content_type
       end
     end
 
