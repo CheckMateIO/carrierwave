@@ -258,11 +258,16 @@ module CarrierWave
         @content_type = @file.content_type.to_s.chomp
       elsif path
         @content_type = ::MIME::Types.type_for(path).first.to_s
-        if @content_type.blank?
-          File.open(path) do |fd|
-            data = fd.read(1024) || ""
-            @content_type = filemagic.buffer(data)
+        begin
+          if @content_type.blank?
+            File.open(path) do |fd|
+              data = fd.read(1024) || ""
+              @content_type = filemagic.buffer(data)
+            end
           end
+        rescue NameError
+          # ruby-filemagic is not loaded, this is fine.
+          @filemagic = nil
         end
         @content_type
       end
@@ -345,6 +350,7 @@ module CarrierWave
     #
     # @return [FileMagic] a filemagic object
     def filemagic
+      return @filemagic if defined?(@filemagic)
       @filemagic ||= FileMagic.new(FileMagic::MAGIC_MIME_TYPE)
     end
 
